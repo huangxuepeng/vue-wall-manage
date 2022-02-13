@@ -14,7 +14,7 @@ import TreeTable from 'vue-table-with-tree-grid'
 
 import axios from 'axios'
 
-axios.defaults.baseURL = '/api'
+axios.defaults.baseURL = '/u/v1/'
 
 axios.interceptors.request.use(config => {
   /* 给请求头里面添加一个属性 Authorization 并将其值设置为token令牌*/

@@ -13,9 +13,9 @@
                  :model="loginForm"
                  :rules="loginFormRules">
           <!-- 用户名 -->
-          <el-form-item prop="email">
-            <el-input v-model="loginForm.email"
-                      placeholder="email"
+          <el-form-item prop="Mobile">
+            <el-input v-model="loginForm.Mobile"
+                      placeholder="Mobile"
                       type="text"></el-input>
           </el-form-item>
           <!-- 密码 -->
@@ -28,7 +28,7 @@
           <el-form-item class="btns">
             <el-form-item>
               <el-button type="primary"
-                         @click="logintest">登陆</el-button>
+                         @click="login">登陆</el-button>
               <el-button @click="resetLoginForm">重置</el-button>
             </el-form-item>
           </el-form-item>
@@ -44,11 +44,11 @@ export default {
     return {
       // 这里是表单的数据绑定对象
       loginForm: {
-        email: '',
-        password: ''
+        Mobile: '18088630924',
+        password: 'i * i = 4'
       },
       loginFormRules: {
-        email: [
+        Mobile: [
           { required: true, message: '请输入用户名', trigger: 'blur' }
           // { min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur' }
         ],
@@ -75,12 +75,15 @@ export default {
         if (!valid) return
         /* 解构赋值 把data设置一个别名 res*/
         const { data: res } = await this.$http.post(
-          'security/login',
+          '/user/login',
           this.loginForm
         )
         console.log(res)
 
-        if (res.code !== 200) this.$Message.error(res.text)
+
+        if (res.code !== 200){ 
+          this.$Message.error(res.text)
+          }
         // /*
         // 将登陆成功之后的token,保存到客户端的sessionStorage中  基于会话的,  localStorage基于本地存储
         // 项目中出了登陆之外的其他api接口,必须在登陆之后才能访问
@@ -88,8 +91,8 @@ export default {
         // */
         else {
           this.$Message.success('登陆成功')
-          console.log(res.data.authToken.accessToken)
-          window.sessionStorage.setItem('token', res.data.authToken.accessToken)
+          // console.log(res.data.authToken.accessToken)
+          window.sessionStorage.setItem('token', res.token)
           // 编程式导航跳转到后台主页,路由地址是 /home
           this.$router.push('/home')
         }

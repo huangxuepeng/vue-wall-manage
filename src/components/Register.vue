@@ -1,36 +1,71 @@
 <template>
   <div class="login_container">
     <div class="login_box">
-      <!-- 头像区域 -->
-      <div class="avatar_box">
-        <img src="../assets/logo.png"
-             alt />
-      </div>
       <!-- 登陆表单区域 -->
       <div>
         <el-form ref="loginFormRef"
                  class="Login_form"
                  :model="loginForm"
                  :rules="loginFormRules">
-          <!-- 用户名 -->
-          <el-form-item prop="mobile">
-            <el-input v-model="loginForm.mobile"
-                      placeholder="mobile"
+                <!--头像 -->
+            <el-form-item prop="avatar">
+                <el-input v-model="loginForm.avatar"
+                        placeholder="请上传头像"
+                        type="file"
+                        accept='image/*'></el-input>
+            </el-form-item>
+            <!-- 昵称 -->
+            <el-form-item prop="nick_name">
+                <el-input v-model="loginForm.nick_name"
+                        placeholder="请输入昵称"
+                        type="text"></el-input>
+            </el-form-item>
+            <!-- 学号 -->
+          <el-form-item prop="student_number">
+            <el-input v-model="loginForm.student_number"
+                      placeholder="请输入学号"
                       type="text"></el-input>
           </el-form-item>
+          <!-- 手机号码 -->
+          <el-form-item prop="mobile">
+            <el-input v-model="loginForm.mobile"
+                      placeholder="手机号码"
+                      type="text"></el-input>
+          </el-form-item>
+            <!-- 邮箱 -->
+            <el-form-item prop="email">
+                <el-input v-model="loginForm.email"
+                        placeholder="请输入邮箱"
+                        type="email"
+                        autocomplete=on></el-input>
+            </el-form-item>
+                        <!-- 星座-->
+            <el-form-item prop="constellation">
+                <el-input v-model="loginForm.constellation"
+                        placeholder="请输入星座"
+                        type="text"></el-input>
+            </el-form-item>
           <!-- 密码 -->
           <el-form-item prop="password">
             <el-input v-model="loginForm.password"
-                      placeholder="password"
-                      type="password"></el-input>
+                      placeholder="密码"
+                      type="password"
+                      id="password"></el-input>
           </el-form-item>
+            <!-- 确认密码 -->
+            <el-form-item prop="repassword">
+                <el-input v-model="loginForm.repassword"
+                        placeholder="再次输入密码"
+                        type="password"
+                        id="repassword"></el-input>
+            </el-form-item>
+                
           <!-- 按钮区 -->
           <el-form-item class="btns">
             <el-form-item>
               <el-button type="primary"
-                         @click="login">登陆</el-button>
+                         @click="login">注册</el-button>
               <el-button @click="resetLoginForm">重置</el-button>
-              <el-button type="info" plain @click="register">注册</el-button>
             </el-form-item>
           </el-form-item>
         </el-form>
@@ -45,13 +80,27 @@ export default {
     return {
       // 这里是表单的数据绑定对象
       loginForm: {
-        mobile: '18088630924',
-        password: '12345678'
+        nick_name: '',
+        mobile: '',
+        password: '',
+        avatar: '',
+        email: '',
+        constellation: ''
       },
       loginFormRules: {
         mobile: [
           { required: true, message: '请输入手机号码', trigger: 'blur' }
           // { min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur' }
+        ],
+        nick_name: [
+            {required: true, message: '请输入您的昵称', trigger: 'blur' }
+        ],
+        student_number: [
+          {required: true, message: '请输入您九位学号', trigger: 'blur'},
+          {min: 9, max: 9, message: '学号的长度为九个数字呦', trigger: 'blur'}
+        ],
+        email: [
+          {required: true, message: '请输入您的邮箱', trigger: 'blur'},
         ],
         password: []
       }
@@ -76,7 +125,7 @@ export default {
         if (!valid) return
         /* 解构赋值 把data设置一个别名 res*/
         const { data: res } = await this.$http.post(
-          '/user/login',
+          '/user/register',
           this.loginForm
         )
         console.log(res)
@@ -89,21 +138,32 @@ export default {
         // token只应在当前网站打开器件生效,所以将token保存在sessionStorage中
         // */
         else {
-          this.$Message.success('登陆成功')
-          // console.log(res.data.authToken.accessToken)
-          window.sessionStorage.setItem('token', res.data.token)
-           window.sessionStorage.setItem('email', res.data.vifyCode)
-          // 编程式导航跳转到后台主页,路由地址是 /home
-          this.$router.push('/home')
+          this.$Message.success('注册成功')
+          this.$router.push('/login')
         }
 
         // 当状态码不是200  则证明请求失败，也就是登录失败   直接提示用户登录失败
       })
     },
-    register() {
-      this.$router.push('/register')
-      console.log('注册')
-    }
+    // 解决上传文件不是图片的弊端
+    avatar(event) {
+      const target = event.target;
+      const files = target.files;
+        for (let file of files) {
+          let reader = new FileReader();
+          reader.onload = e => {
+            let img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+              //  do something
+            };
+          };
+          //  用于将Blob对象转换成base64编码
+          reader.readAsDataURL(file);
+        }
+      
+    },
+
   }
 }
 </script>
@@ -111,11 +171,11 @@ export default {
 <style lang="less" scoped>
 .login_container {
   height: 100%;
-  background: #2ecc71;
+  background: #83d5e4;
 }
 .login_box {
   width: 450px;
-  height: 300px;
+  height: 600px;
   background-color: #fff;
   position: absolute;
   top: 50%;

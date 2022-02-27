@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import Register from '../components/Register.vue'
 import Login from '../components/Login.vue'
 import Home from '../components/Home.vue'
 import System from '../components/system.vue'
@@ -49,6 +50,10 @@ const router = new VueRouter({
  routes: [{
    path: '/',
    redirect: '/login'
+  },
+  {
+    path: '/register',
+    component: Register
   },
   {
    path: '/login',

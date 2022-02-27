@@ -547,7 +547,7 @@ export default {
       }
 
       const { data: res } = await this.$http.post(
-        'user/admin/list',
+        'admin/getlist',
         this.queryInfo
       )
       if (res.code !== 200) {

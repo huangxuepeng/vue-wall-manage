@@ -77,6 +77,25 @@
 <script>
 export default {
   data() {
+    var validatePass = (rule, value, callback) => {
+        if (value === '') {
+                callback(new Error('请输入密码'));
+        } else {
+          if (this.ruleForm.confirmPwd !== '') {
+              this.$refs.ruleForm.validateField('confirmPwd');
+          }
+          callback();
+        }
+      };
+      var validatePass2 = (rule, value, callback) => {
+          if (value === '') {
+              callback(new Error('请再次输入密码'));
+          } else if (value !== this.ruleForm.newPwd) {
+              callback(new Error('两次输入密码不一致!'));
+          } else {
+              callback();
+          }
+      }
     return {
       // 这里是表单的数据绑定对象
       loginForm: {
@@ -102,7 +121,14 @@ export default {
         email: [
           {required: true, message: '请输入您的邮箱', trigger: 'blur'},
         ],
-        password: []
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur'},
+          { validator: validatePass, trigger: 'blur'}
+        ],
+        repassword: [
+          { required: true, message: '请确认密码', trigger: 'blur'},
+          { validator: validatePass2, trigger: 'blur'}
+        ]
       }
     }
   },

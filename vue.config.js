@@ -38,7 +38,7 @@ module.exports = {
       // port: 8081, // 端口号
       https: false,
       // open: true, //配置自动启动浏览器
-      proxy: 'http://119.45.221.151:80/' // 配置跨域处理,只有一个代理
+      proxy: 'http://localhost:8080/' // 配置跨域处理,只有一个代理
 
   }
 };

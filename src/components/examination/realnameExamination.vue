@@ -9,74 +9,41 @@
     <!-- 卡片视图区域 -->
     <el-card>
       <el-row :gutter="20">
-        <el-col :span="4">
-          <el-input v-model="queryInfo.searchCondition.userId"
-                    placeholder="用户ID"
-                    clearable></el-input>
-        </el-col>
-        <el-col :span="4">
-          <el-input v-model="queryInfo.searchCondition.approveId"
-                    placeholder="审核人ID"
-                    clearable></el-input>
-        </el-col>
-
-        <el-col :span="5">
-          <!--搜索框-->
-          <el-select v-model="queryInfo.searchCondition.state"
-                     placeholder="认证状态">
-            <el-option v-for="item in opt"
-                       :key="item.value"
-                       :label="item.label"
-                       :value="item.value">
-            </el-option>
-          </el-select>
-        </el-col>
+         <!--搜索框-->
+         <el-col :span="4">
+            <el-input placeholder="输入要查询的学号"
+            v-model="queryInfo.query"
+              clearable
+              @clear="getRealList">
+          </el-input>
+         </el-col>
         <el-col :span="4">
           <el-button type="primary"
-                     @click="getRecordList">搜索</el-button>
+                     @click="getRealList">搜索</el-button>
           <el-button @click="reset_Search">重置</el-button>
         </el-col>
-      </el-row>
-      <!-- 表格 -->
-      <tree-table :data="recordList"
-                  :columns="columns"
-                  :selection-type='false'
-                  :expand-type='false'
-                  show-index
-                  index-text='#'
-                  border
-                  :show-row-hover="false"
-                  :tree-type="true"
-                  children-prop="childs"
-                  class="treeTable">
-        <!-- 认证类型 -->
-        <template slot="certification_type"
-                  slot-scope="scope">
-          <div>
-            <el-tag>{{scope.row.type|certificationType}}</el-tag>
-          </div>
-        </template>
-        <!-- 认证状态 -->
-        <template slot="certification_state"
-                  slot-scope="scope">
-          <div>
-            <el-tag type="warning"
-                    v-if="scope.row.state==1">{{scope.row.state|certificationState}}</el-tag>
-            <el-tag type="success"
-                    v-if="scope.row.state==2">{{scope.row.state|certificationState}}</el-tag>
-            <el-tag type="danger"
-                    v-if="scope.row.state==3">{{scope.row.state|certificationState}}</el-tag>
-          </div>
-        </template>
-        <!-- 操作 -->
-        <template slot="operate"
-                  slot-scope="scope">
-          <el-button type="danger"
-                     plain
-                     size="mini"
-                     @click="approveUser(scope.row)">审核</el-button>
-        </template>
-      </tree-table>
+      </el-row> 
+      <!-- 用户列表区域 -->
+      <el-table :data="realList" border stripe>
+        <el-table-column type="index"></el-table-column>
+        <el-table-column label="用户ID" prop="ID"></el-table-column>
+        <el-table-column label="手机号码" prop="Mobile"></el-table-column>
+        <el-table-column label="实名状态" prop="IsReal">
+          <template slot-scope="scope">
+             <el-switch
+              v-model="scope.row.IsReal" @change="userRealChange(scope.row)">
+            </el-switch>
+          </template>
+        </el-table-column>
+        <el-table-column label="角色" prop="Role"></el-table-column>
+        <el-table-column label="操作">
+          <template slot-scope="scope">
+             <el-tooltip class="item" effect="dark" content="审核" placement="top">
+                    <el-button type="primary" icon="el-icon-edit" circle size="middle" @click="dialogVisible = true"></el-button>
+            </el-tooltip>
+          </template>
+        </el-table-column>
+      </el-table>
       <!-- 分页区域 -->
       <el-pagination @size-change="handleSizeChange"
                      @current-change="handleCurrentChange"
@@ -87,69 +54,26 @@
                      :total="total">
       </el-pagination>
     </el-card>
-
-    <!-- 修改用户对话框 -->
-    <el-dialog title="审核"
-               :visible.sync="editDialogVisible"
-               width="65%">
-      <el-form :model="recordDetailInfo"
-               ref="editFormRef"
-               label-width="150px">
-        <el-form-item label="编号">
-          <el-input v-model="recordDetailInfo.id"
-                    disabled></el-input>
+    <el-dialog
+        title="提示"
+        :visible.sync="dialogVisible"
+        width="50%"
+        @close="vifyDialogClosed">
+        <el-form :model="ruleForm" :rules="vifyRules" ref="ruleFormRef" label-width="70px">
+        <el-form-item label="学号" prop="vifystudent_num">
+          <el-input v-model="ruleForm.vifystudent_num" placeholder="请输入您的学号"></el-input>
         </el-form-item>
-        <el-form-item label="用户id">
-          <el-input v-model="recordDetailInfo.userId"
-                    disabled></el-input>
-        </el-form-item>
-        <el-form-item label="输入名称"
-                      prop="applyUserId">
-          <el-input v-model="recordDetailInfo.inputName"
-                    disabled></el-input>
-        </el-form-item>
-        <el-form-item label="输入账号"
-                      prop="applyAmount">
-          <el-input v-model="recordDetailInfo.inputCardNo"
-                    disabled></el-input>
-        </el-form-item>
-        <el-form-item label="审核图片"
-                      prop="createTime">
-          <!-- <img :src="$store.state.ImgUrl + recordDetailInfo.picuri"
-               alt=""
-               class="review_img"> -->
-          <el-image style="width: 100px;"
-                    :src="$store.state.ImgUrl + recordDetailInfo.picuri"
-                    :preview-src-list="[$store.state.ImgUrl + recordDetailInfo.picuri]">
-          </el-image>
-        </el-form-item>
-
-        <el-form-item label="输入审核备注"
-                      prop="applyAmount">
-          <el-input v-model="updateRecord.remark"
-                    type="textarea"
-                    :rows="2"
-                    resize="none"></el-input>
-        </el-form-item>
-
-        <el-form-item label="选择审核结果"
-                      prop="state">
-          <el-select v-model="updateRecord.state"
-                     placeholder="审核结果">
-            <el-option v-for="item in opt"
-                       :key="item.value"
-                       :label="item.label"
-                       :value="item.value">
-            </el-option>
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <span slot="footer"
-            class="dialog-footer">
-        <el-button @click="editDialogVisible = false">关闭</el-button>
-        <el-button type="primary"
-                   @click="updateInfo">提交审核</el-button>
-      </span>
+          <el-form-item label="认证状态" prop="region">
+            <el-select v-model="ruleForm.region" placeholder="请选择认证状态">
+              <el-option label="认证成功" value="成功"></el-option>
+              <el-option label="认证失败" value="失败"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="vifyUser">确 定</el-button>
+        </span>
     </el-dialog>
   </div>
 </template>
@@ -157,135 +81,98 @@
 export default {
   data() {
     return {
-      editDialogVisible: false,
-      //1-认证中  2-认证成功  3-认证失败
-      opt: [
-        {
-          value: '1',
-          label: '认证中'
-        },
-        {
-          value: '2',
-          label: '认证成功'
-        },
-        {
-          value: '3',
-          label: '认证失败'
-        }
-      ],
-      updateRecord: {},
       queryInfo: {
+        query: '',
+        // 页数
         currentPage: 1,
-        pageSize: 10,
-        searchCondition: {
-          id: '',
-          state: '',
-          approveId: '',
-          userId: ''
-        }
+        // 每页的数据 
+        pageSize: 10
       },
-      recordDetailInfo: {},
-      recordList: [],
+      userid: '',
+      isReal: '',
+      realList: [],
       // 总数据条数
       total: 0,
-      // 为table指定列的定义
-      columns: [
-        {
-          label: '用户id',
-          prop: 'userId'
-        },
-        // {
-        //   label: '认证类型',
-        //   prop: 'type'
-        // },
-        // {
-        //   label: '认证状态',
-        //   prop: 'state'
-        // },
-        {
-          label: '认证类型',
-          type: 'template',
-          template: 'certification_type'
-        },
-        {
-          label: '认证状态',
-          type: 'template',
-          template: 'certification_state'
-        },
-        {
-          label: '时间',
-          prop: 'createTime'
-        },
-        {
-          label: '操作',
-          type: 'template',
-          template: 'operate'
-        }
-      ]
+      dialogVisible: false,
+      // 审核信息的表单数据
+      ruleForm: {
+        vifystudent_num: '',
+        region: '',
+      },
+      // 添加表单验证规则对象
+      vifyRules: {
+        vifystudent_num: [
+          { required: true, message: '请输入您的学号', trigger: 'blur'},
+          { min: 9, max: 9, message: '学号的长度必须为九位', trigger: 'blur' }
+        ],
+      },
     }
   },
   created() {
     // 生命周期函数内调用这个方法  获取列表
-    this.getRecordList()
+    this.getRealList()
   },
   methods: {
-    // 获取帖子列表
-    async getRecordList() {
+    // 获取需要认证的用户列表
+    async getRealList() {
       this.recordList = []
       const { data: res } = await this.$http.post(
-        'security/admin/authen',
-        this.queryInfo
+        'admin/getlist?{this.queryInfo.query}'
+        // this.queryInfo
       )
+      console.log(res.data.data)
       if (res.code !== 200) {
         return this.$Message.error('获取信息失败')
       }
-      this.recordList = res.data.data
-      this.total = res.data.totalCount
-    },
-    // 监听pagesize改变
-    handleSizeChange(newSize) {
-      this.queryInfo.pageSize = newSize
-      this.getRecordList()
-    },
-    // 监听currentPage改变
-    handleCurrentChange(newPage) {
-      this.queryInfo.currentPage = newPage
-      this.getRecordList()
+        this.realList = res.data.data
+        this.total = res.data.data.length
+        this.userid = res.data.data.ID
+        this.isReal = res.data.data.IsReal
     },
     // 监听搜索框重置
     reset_Search() {
       //  先重置输入框  再发起数据请求,获取最新的列表
-      this.queryInfo.searchCondition.id = ''
-      this.queryInfo.searchCondition.state = ''
-      this.queryInfo.searchCondition.userId = ''
-      this.queryInfo.searchCondition.approveId = ''
-      this.getRecordList()
+      // this.queryInfo.searchCondition.id = ''
+      // this.queryInfo.searchCondition.state = ''
+      // this.queryInfo.searchCondition.userId = ''
+      // this.queryInfo.searchCondition.approveId = ''
+      this.queryInfo.query = ''
+      this.getRealList()
     },
-    // 监听删除文章
-    async approveUser(param) {
-      this.recordDetailInfo = param
-      this.editDialogVisible = true
+    // 监听pageSize 改变的事件
+    handleSizeChange(newSize) {
+      this.queryInfo.pageSize = newSize
+      this.getRealList()
     },
-
-    async updateInfo() {
-      let id = this.recordDetailInfo.id
-      this.updateRecord.id = id
-      const { data: res } = await this.$http.post(
-        'security/admin/authen/approve',
-        this.updateRecord
-      )
-      this.editDialogVisible = false
+  // 监听 页码值 改变事件
+    handleCurrentChange(newPage) {
+      this.queryInfo.currentPage = newPage
+      this.getRealList()
+    },
+    // 监听 switch 状态的改变
+    async userRealChange(userinfo) {
+      // 改变他的状态进行向后端反馈信息解决他的实名
+     const {data : res} = await this.$http.get(`admin/change/${userinfo.ID}/${userinfo.IsReal}`)
       if (res.code !== 200) {
-        this.$Message.error('操作失败')
-      } else {
-        this.$Message.error('操作失败')
+        userinfo.isReal = !userinfo.isReal
+        return this.$message.error('更新用户状态失败!')
       }
-      this.editDialogVisible = false
+      this.$$message.Success('更新状态成功')
     },
-    async getUserName(userId) {
-      const { data: res } = await this.$http.get(`user/user/${userId}`)
-      if (res.code != 200) return
-      return res.text
+    // 监听 添加审核对话框的关闭事件
+    vifyDialogClosed() {
+      this.$refs.ruleFormRef.resetFields()
+    },
+    // 点击按钮弹出数据进行二次验证
+    vifyUser() {
+      this.$refs.ruleFormRef.validate(async valid => {
+        if (!valid) return 
+        const { data: res } = await this.$http.post('/admin/authenticationuser', this.ruleForm)
+        if (res.code != 200) return this.$message.error('审核失败')
+        this.$message.Success('审核成功')
+        this.dialogVisible = false
+        this.getRealList()
+      })
     }
   }
 }

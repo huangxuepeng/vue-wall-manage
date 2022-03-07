@@ -52,20 +52,14 @@
                       type="password"
                       id="password"></el-input>
           </el-form-item>
-            <!-- 确认密码 -->
-            <el-form-item prop="repassword">
-                <el-input v-model="loginForm.repassword"
-                        placeholder="再次输入密码"
-                        type="password"
-                        id="repassword"></el-input>
-            </el-form-item>
-                
           <!-- 按钮区 -->
           <el-form-item class="btns">
             <el-form-item>
               <el-button type="primary"
-                         @click="login">注册</el-button>
+                         @click="register">注册</el-button>
               <el-button @click="resetLoginForm">重置</el-button>
+              <el-button type="primary"
+                         @click="login">登陆</el-button>
             </el-form-item>
           </el-form-item>
         </el-form>
@@ -77,25 +71,6 @@
 <script>
 export default {
   data() {
-    var validatePass = (rule, value, callback) => {
-        if (value === '') {
-                callback(new Error('请输入密码'));
-        } else {
-          if (this.ruleForm.confirmPwd !== '') {
-              this.$refs.ruleForm.validateField('confirmPwd');
-          }
-          callback();
-        }
-      };
-      var validatePass2 = (rule, value, callback) => {
-          if (value === '') {
-              callback(new Error('请再次输入密码'));
-          } else if (value !== this.ruleForm.newPwd) {
-              callback(new Error('两次输入密码不一致!'));
-          } else {
-              callback();
-          }
-      }
     return {
       // 这里是表单的数据绑定对象
       loginForm: {
@@ -123,11 +98,9 @@ export default {
         ],
         password: [
           { required: true, message: '请输入密码', trigger: 'blur'},
-          { validator: validatePass, trigger: 'blur'}
         ],
         repassword: [
           { required: true, message: '请确认密码', trigger: 'blur'},
-          { validator: validatePass2, trigger: 'blur'}
         ]
       }
     }
@@ -144,7 +117,7 @@ export default {
       this.$router.push('/home')
       console.log('ok')
     },
-    login() {
+    register() {
       // 表单预验证
       this.$refs.loginFormRef.validate(async valid => {
         // console.log(valid);
@@ -170,6 +143,10 @@ export default {
 
         // 当状态码不是200  则证明请求失败，也就是登录失败   直接提示用户登录失败
       })
+    },
+    login() {
+      this.$router.push('/login')
+      console.log('登录')
     },
     // 解决上传文件不是图片的弊端
     avatar(event) {

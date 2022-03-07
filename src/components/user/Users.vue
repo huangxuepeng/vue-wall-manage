@@ -280,7 +280,7 @@ export default {
     // 发起请求  获取用户信息并存到 userList
     async getUserList() {
       // 解构赋值  data重命名为res
-      const { data: res } = await this.$http.get('user', {
+      const { data: res } = await this.$http.get('/admin/getlist', {
         params: this.queryInfo.id
       })
       if (res.meta.status != 200) return this.$message.error('获取用户列表失败')

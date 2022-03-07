@@ -145,7 +145,7 @@ export default {
         // 请求数据成功
         this.$Message.success('加载管理员信息成功')
         console.log(res.data)
-        this.ListObj = res.data
+        this.ListObj = res.data.ID
         console.log(this.ListObj)
       }
     },
@@ -167,7 +167,7 @@ export default {
         // 管理员信息修改成功
         this.$Message.success('管理员信息修改成功')
         // 修改成功,然后跳转到原来管理员列表页面
-        this.$router.push('administrators')
+        this.$router.push('/administrators')
       }
     }
   }

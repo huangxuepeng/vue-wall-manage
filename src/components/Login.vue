@@ -81,14 +81,14 @@ export default {
         )
         console.log(res)
         if (res.code !== 200){ 
-          this.$Message.error(res.text)
+          this.$Message.error('手机号码错误或者密码错误; 您未完成注册, 请注册再登录')
           }
         // /*
         // 将登陆成功之后的token,保存到客户端的sessionStorage中  基于会话的,  localStorage基于本地存储
         // 项目中出了登陆之外的其他api接口,必须在登陆之后才能访问
         // token只应在当前网站打开器件生效,所以将token保存在sessionStorage中
         // */
-        else {
+        else if (res.code === 200) {
           this.$Message.success('登陆成功')
           // console.log(res.data.authToken.accessToken)
           window.sessionStorage.setItem('token', res.data.token)

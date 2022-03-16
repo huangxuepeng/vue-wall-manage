@@ -37,9 +37,22 @@
         </el-table-column>
         <el-table-column label="角色" prop="Role"></el-table-column>
         <el-table-column label="操作">
-          <template slot-scope="scope">
-             <el-tooltip class="item" effect="dark" content="审核" placement="top">
-                    <el-button type="primary" icon="el-icon-edit" circle size="middle" @click="dialogVisible = true"></el-button>
+          <template scope="scope">
+            <!-- 审核按钮 -->
+             <el-tooltip effect="dark" content="审核" placement="top">
+                    <el-button type="primary" icon="el-icon-edit" circle size="mini" @click="dialogVisible = true"></el-button>
+            </el-tooltip>
+            <!-- 修改用户信息 -->
+              <el-tooltip effect="dark" content="查看信息" placement="top">
+                    <el-button type="warning" icon="el-icon-setting" circle size="mini" @click="showEditDialog(scope.row.ID)" v-model="scope.row.ID"></el-button>
+            </el-tooltip>
+            <!-- 查看信息按钮 -->
+            <!-- <el-tooltip effect="dark" content="查看信息" placement="top">
+                    <el-button type="warning" icon="el-icon-setting" circle size="mini" @click="showUser(scope.row.id)"></el-button>
+            </el-tooltip> -->
+            <!-- 删除按钮 -->
+            <el-tooltip effect="dark" content="删除实名认证" placement="top">
+                    <el-button type="danger" icon="el-icon-delete" circle size="mini" @click="removeUserById(scope.row.ID)"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -54,8 +67,9 @@
                      :total="total">
       </el-pagination>
     </el-card>
+    <!-- 审核信息对话框 -->
     <el-dialog
-        title="提示"
+        title="审核信息对话框"
         :visible.sync="dialogVisible"
         width="50%"
         @close="vifyDialogClosed">
@@ -65,14 +79,45 @@
         </el-form-item>
           <el-form-item label="认证状态" prop="region">
             <el-select v-model="ruleForm.region" placeholder="请选择认证状态">
-              <el-option label="认证成功" value="成功"></el-option>
-              <el-option label="认证失败" value="失败"></el-option>
+              <el-option label="认证成功" value="认证成功"></el-option>
+              <el-option label="认证失败" value="认证失败"></el-option>
             </el-select>
           </el-form-item>
         </el-form>
         <span slot="footer" class="dialog-footer">
           <el-button @click="dialogVisible = false">取 消</el-button>
           <el-button type="primary" @click="vifyUser">确 定</el-button>
+        </span>
+    </el-dialog>
+    <!-- 查看用户对话框 -->
+    <!-- <el-dialog
+      title="提示"
+      :visible.sync="editDialogVisible"
+      width="50%">
+        <el-form :model="showForm" :rules="showFormRules" ref="showFormRef" label-width="70px">
+          <el-form-item label="学号">
+          <el-input v-model="showForm.studentnumber"></el-input>
+        </el-form-item>
+        </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="editDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="editDialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog> -->
+    <!-- 修改用户对话框 -->
+    <el-dialog
+        title="修改用户对话框"
+        :visible.sync="editDialogVisible"
+        width="50%"
+        @close="editDialogVisibleClosed">
+        <el-form :model="editForm" :rules="editFormRules" ref="editFormRef" label-width="70px">
+        <el-form-item label="学号">
+          <el-input v-model="editForm.stunumber" disabled></el-input>
+        </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="editDialogVisible = false">确 定</el-button>
         </span>
     </el-dialog>
   </div>
@@ -106,6 +151,9 @@ export default {
           { min: 9, max: 9, message: '学号的长度必须为九位', trigger: 'blur' }
         ],
       },
+      // 控制修改用户对话框的显示
+      editDialogVisible: false,
+      editForm: {},
     }
   },
   created() {
@@ -120,7 +168,6 @@ export default {
         'admin/getlist?{this.queryInfo.query}'
         // this.queryInfo
       )
-      console.log(res.data.data)
       if (res.code !== 200) {
         return this.$Message.error('获取信息失败')
       }
@@ -167,13 +214,48 @@ export default {
     vifyUser() {
       this.$refs.ruleFormRef.validate(async valid => {
         if (!valid) return 
-        const { data: res } = await this.$http.post('/admin/authenticationuser', this.ruleForm)
+        const { data: res } = await this.$http.post('/admin/authenticationuser', this.ruleForm, this.userid)
         if (res.code != 200) return this.$message.error('审核失败')
         this.$message.Success('审核成功')
         this.dialogVisible = false
         this.getRealList()
       })
-    }
+    },
+  // 展示编辑用户的对话框
+    async showEditDialog(id) {
+      const { data:res } = await this.$http.get('/user/getid/' + id)
+      if (res.code !== 200) {
+        return this.$message.error('查询用户失败')
+      }
+      console.log(res);
+      this.editForm = res.data
+      this.editDialogVisible = true
+    },
+    // 监听修改用户对话框的关闭事件
+    editDialogVisibleClosed() {
+      this.$refs.editFormRef.resetFields()
+    },
+
+    // 根据用户的ID 进行删除用户  
+    async removeUserById(id) {
+        console.log(id)
+        // 弹窗进行询问数据
+        const confirmResult = await this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).catch(err => err)
+        // 确认  confirm
+        // 取消   cancel
+        if (confirmResult !== 'confirm') {
+          return this.$Message.info('已取消删除')
+        }
+       const { data: res } = await this.$http.delete('/admin/deleterealname/' + id)
+       if (res.code !== 200) {
+         return this.$Message.error('删除失败')
+       }
+       this.$$Message.success('删除成功')
+    },
   }
 }
 </script>

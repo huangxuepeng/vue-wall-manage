@@ -108,23 +108,23 @@
         </el-table-column>
         <!-- 索引列 -->
         <el-table-column type="index"></el-table-column>
-        <el-table-column prop="id"
+        <el-table-column prop="ID"
                          label="ID"></el-table-column>
-        <el-table-column prop="nickname"
+        <el-table-column prop="NickName"
                          label="昵称"></el-table-column>
-        <el-table-column prop="realName"
+        <el-table-column prop="NickName"
                          label="真实姓名"></el-table-column>
-        <el-table-column prop="phoneNum"
+        <el-table-column prop="Mobile"
                          label="手机号"></el-table-column>
         <el-table-column label="身份"
-                         prop="type">
+                         prop="Role">
           <template scope="scope">
             <!-- 使用过滤器将后端传过来的数字类型的数据转为对应的身份名 -->
-            <el-tag>{{scope.row.type | admin_type_Format}}</el-tag>
+            <el-tag>{{scope.row.Role | admin_type_Format}}</el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column prop="email"
+        <el-table-column prop="Email"
                          label="邮箱地址">
         </el-table-column>
 
@@ -133,18 +133,18 @@
         </el-table-column>
         <el-table-column label="操作"
                          width="180px">
-          <template slot-scope="scope">
+          <template scope="scope">
             <!-- {{scope.row}} -->
             <!-- 修改按钮 -->
             <el-button type="primary"
                        icon="el-icon-edit"
                        size="mini"
-                       @click="showEditDialog(scope.row.id)"></el-button>
+                       @click="showEditDialog(scope.row.ID)"></el-button>
             <!-- 删除按钮 -->
             <el-button type="danger"
                        icon="el-icon-delete"
                        size="mini"
-                       @click="removeAdminById(scope.row.id)"></el-button>
+                       @click="removeAdminById(scope.row.ID)"></el-button>
             <!-- 分配角色按钮 -->
             <el-tooltip effect="dark"
                         content="分配角色"
@@ -241,7 +241,7 @@
         <el-form-item hidden
                       label="用户ID"
                       prop="id">
-          <el-input v-model="editForm.id"
+          <el-input v-model="editForm.ID"
                     disabled></el-input>
         </el-form-item>
 
@@ -255,19 +255,19 @@
               </el-form-item>
             </el-col>
             <el-col :span="7">
-              <el-form-item label="姓名"
+              <el-form-item label="学号"
                             prop="realName">
-                <el-input v-model="editForm.realName"
+                <el-input v-model="editForm.stunumber"
                           disabled></el-input>
               </el-form-item>
             </el-col>
             <el-col :span="7">
               <el-form-item label="性别"
                             prop="gender">
-                <el-radio-group v-model="editForm.gender"
+                <el-radio-group v-model="editForm.sex"
                                 disabled>
-                  <el-radio :label="1">女</el-radio>
-                  <el-radio :label="2">男</el-radio>
+                  <el-radio :label="0">女</el-radio>
+                  <el-radio :label="1">男</el-radio>
                 </el-radio-group>
               </el-form-item>
             </el-col>
@@ -315,13 +315,13 @@
         </el-form-item>
 
         <el-form-item label="电话">
-          <el-input v-model="editForm.phoneNum"
+          <el-input v-model="editForm.mobile"
                     disabled></el-input>
         </el-form-item>
 
         <el-form-item label="邮箱"
                       prop="email">
-          <el-input v-model="editForm.email"></el-input>
+          <el-input v-model="editForm.email" disabled></el-input>
         </el-form-item>
 
         <el-form-item label="身份"
@@ -684,9 +684,10 @@ export default {
       /* 
         在弹框之前首先发起请求,根据id查询用户信息
       */
-      const { data: res } = await this.$http.get(`user/admin/?{id}`)
+      const { data: res } = await this.$http.get('user/getid/' + id)
       console.log(res.data)
       this.editForm = res.data
+      console.log(this.editForm)
       // 请求成功,将请求过来的数据渲染到页面上也就是弹出的对话框里面
       this.editDialogVisible = true
     },
@@ -708,7 +709,7 @@ export default {
         return this.$Message.info('取消了删除')
       } else {
         // 点击了确认,就可以发起了请求
-        const { data: res } = await this.$http.put('user/admin', this.editForm)
+        const { data: res } = await this.$http.delete('/admin/deleteregistername/'+ id)
         if (res.code !== 200) return this.$Message.error(res.text)
         this.$Message.success(`删除ID为${id}用户成功!`)
         // 删除成功之后,再次发情获取用户列表的请求
@@ -718,7 +719,7 @@ export default {
     //当某一行被点击时会触发该事件  这个时候跳转到用户信息的详情页中
     clickToDetail(row) {
       // console.log(row.id)
-      this.$router.push(`/Administrators_Detail?id=${row.id}`)
+      this.$router.push(`/Administrators_Detail?id=${row.id}`)  //点击之后被推送到用户的详情页
     },
     // 编辑用户    修改用户的状态信息
     async editDialogSubmit() {
